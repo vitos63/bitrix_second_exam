@@ -6,6 +6,7 @@ AddEventHandler("iblock", "OnAfterIBlockElementUpdate", Array("ReviewsClass", "N
 AddEventHandler("main", "OnBeforeUserUpdate", Array("UserClass", "OnBeforeUserUpdateHandler"));
 AddEventHandler("main", "OnAfterUserUpdate", Array("UserClass", "OnAfterUserUpdateHandler"));
 AddEventHandler("main", "OnBeforeEventSend", Array("MyForm", "my_OnBeforeEventSend"));
+AddEventHandler("search", "BeforeIndex", Array("MyClass", "BeforeIndexHandler"));
 
 use Bitrix\Main\Mail\Event;
 
@@ -112,5 +113,27 @@ class MyForm{
             return $arFields;
         }
         
+    }
+}
+
+class MyClass{
+    public static function BeforeIndexHandler($arFields){
+        if ($arFields["MODULE_ID"] == "iblock" && $arFields["PARAM2"] == 5){
+            $authorId = CIBlockElement::GetList(
+                [],
+                ['ID' => $arFields['ITEM_ID']],
+                false,
+                false,
+                ['ID', 'PROPERTY_AUTHOR']
+            ) ->Fetch();
+        $user = CUser::GetByID($authorId['PROPERTY_AUTHOR_VALUE']) -> Fetch();
+        $userClassXML = $user['UF_USER_CLASS'];
+        $userClass = CUserFieldEnum::GetList(
+            [],
+            ['ID' => $userClassXML]
+        )->Fetch() ['VALUE'];
+        $arFields['TITLE'] .= ' Класс: '. $userClass;
+        return $arFields;
+    }
     }
 }
