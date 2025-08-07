@@ -5,6 +5,7 @@ AddEventHandler("iblock", "OnBeforeIBlockElementUpdate", Array("ReviewsClass", "
 AddEventHandler("iblock", "OnAfterIBlockElementUpdate", Array("ReviewsClass", "NewAuthor"));
 AddEventHandler("main", "OnBeforeUserUpdate", Array("UserClass", "OnBeforeUserUpdateHandler"));
 AddEventHandler("main", "OnAfterUserUpdate", Array("UserClass", "OnAfterUserUpdateHandler"));
+AddEventHandler("main", "OnBeforeEventSend", Array("MyForm", "my_OnBeforeEventSend"));
 
 use Bitrix\Main\Mail\Event;
 
@@ -98,5 +99,18 @@ class UserClass {
             ),
             )); 
         }
+    }
+}
+
+
+class MyForm{
+    public static function my_OnBeforeEventSend($arFields, $arTemplate){
+        if ($arTemplate['EVENT_NAME'] == 'USER_INFO'){
+            $userId = $arFields["ID"];
+            $userClass = CUser::GetByID($userId) ->Fetch()['UF_USER_CLASS'];
+            $arFields['CLASS'] = $userClass;
+            return $arFields;
+        }
+        
     }
 }
