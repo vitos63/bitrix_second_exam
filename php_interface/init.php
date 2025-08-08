@@ -7,6 +7,7 @@ AddEventHandler("main", "OnBeforeUserUpdate", Array("UserClass", "OnBeforeUserUp
 AddEventHandler("main", "OnAfterUserUpdate", Array("UserClass", "OnAfterUserUpdateHandler"));
 AddEventHandler("main", "OnBeforeEventSend", Array("MyForm", "my_OnBeforeEventSend"));
 AddEventHandler("search", "BeforeIndex", Array("MyClass", "BeforeIndexHandler"));
+AddEventHandler("main", "OnBuildGlobalMenu", "ChangeAdminMenu");
 
 use Bitrix\Main\Mail\Event;
 
@@ -135,5 +136,51 @@ class MyClass{
         $arFields['TITLE'] .= ' Класс: '. $userClass;
         return $arFields;
     }
+    }
+}
+
+
+function ChangeAdminMenu(&$aGlobalMenu, &$aModuleMenu){
+    global $USER;
+    $userId = $USER -> GetId();
+    $userGroups = CUser::GetUserGroup(
+        $userId
+    );   
+
+    if (in_array(5, $userGroups)){
+        foreach ($aGlobalMenu as $key => $value){
+            if ($key !== 'global_menu_content'){
+                unset($aGlobalMenu[$key]);       
+            }
+        }
+        foreach ($aModuleMenu as $key => $value){
+            if ($value['parent_menu'] !== 'global_menu_content'){
+                unset($aModuleMenu[$key]);
+            }
+        }
+
+        $aGlobalMenu['fast'] = [
+            'menu_id' => 'fast',
+            'text' => 'Быстрый доступ',
+            'title' => 'Быстрый доступ',
+            'sort' => 100,
+            'items_id' => 'fast',
+            'items' => [
+            ]
+
+        ];
+        $aModuleMenu[] = [
+            'text' => 'Ссылка 1',
+            'url' => 'https://test1',
+            'title' => 'Ссылка 1',
+            'parent_menu' => 'fast'
+        ];
+
+        $aModuleMenu[] = [
+            'text' => 'Ссылка 2',
+            'url' => 'https://test2',
+            'title' => 'Ссылка 2',
+            'parent_menu' => 'fast'
+        ];
     }
 }
